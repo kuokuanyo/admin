@@ -229,7 +229,8 @@ func aButton() types.ButtonAttribute {
 
 func aTree() types.TreeAttribute {
 	// aTemplate判斷templateMap(map[string]Template)的key鍵是否參數globalCfg.Theme，有則回傳Template(interface)
-	// Tree為Template(interface)的方法
+	// Tree在template\components\base.go中
+	// Tree為Template(interface)的方法，設置TreeAttribute(struct也是interface)並回傳
 	return aTemplate().Tree()
 }
 
@@ -242,6 +243,9 @@ func aDataTable() types.DataTableAttribute {
 }
 
 func aBox() types.BoxAttribute {
+	// aTemplate判斷templateMap(map[string]Template)的key鍵是否參數globalCfg.Theme，有則回傳Template(interface)
+	// Box在template\components\base.go中
+	// Box為Template(interface)的方法，設置BoxAttribute(struct也是interface)並回傳
 	return aTemplate().Box()
 }
 

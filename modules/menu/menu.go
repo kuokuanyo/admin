@@ -143,6 +143,7 @@ func GetGlobalMenu(user models.UserModel, conn db.Connection) *Menu {
 	var title string
 	for i := 0; i < len(menus); i++ {
 
+		// 如果type = 1，將title轉換成該語言文字(例如將Perssion轉換為中文)
 		if menus[i]["type"].(int64) == 1 {
 			// Get回傳設定的語言(modules\language\language.go)
 			title = language.Get(menus[i]["title"].(string))

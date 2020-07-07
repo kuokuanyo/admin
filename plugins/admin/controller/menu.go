@@ -259,8 +259,14 @@ func (h *Handler) getMenuInfoPanel(ctx *context.Context, alert template2.HTML) {
 	// 硓筁把计ctx肚ヘ玡祅ノめ(Context.UserValue["user"])锣传ΘUserModel
 	user := auth.Auth(ctx)
 
-	// aTemplate耞templateMap(map[string]Template)key龄琌把计globalCfg.ThemeΤ玥肚Template(interface)
-	// TreeTemplate(interface)よ猭
+	// aTreeplugins\admin\controller\common.goい
+	// aTree耞templateMap(map[string]Template)key龄琌把计globalCfg.ThemeΤ玥肚Template(interface)
+	// 钡帝砞竚TreeAttribute(struct琌interface)肚
+	// SetEditUrlSetUrlPrefixSetDeleteUrlSetOrderUrlGetContent常TreeAttributeよ猭
+	// 常琌盢把计砞竚TreeAttribute(struct)
+	// GetContent盢才compo.TemplateList["components/tree"](map[string]string)text(string)钡帝盢把计の睰倒穝家狾秆猂家狾砰
+	// 盢把计compo糶buffer(bytes.Buffer)い程块HTML
+	// tree/admin/menuい陪ボ攫瓜玡狠粂猭
 	tree := aTree().
 		SetTree((menu.GetGlobalMenu(user, h.conn)).List).
 		SetEditUrl(h.routePath("menu_edit_show")).
@@ -269,7 +275,19 @@ func (h *Handler) getMenuInfoPanel(ctx *context.Context, alert template2.HTML) {
 		SetOrderUrl(h.routePath("menu_order")).
 		GetContent()
 
+	// GetTreeHeaderTreeAttributeよ猭
+	// 盢才compo.TemplateList["components/tree-header"](map[string]string)text(string)钡帝盢把计の睰倒穝家狾秆猂家狾砰
+	// 盢把计compo糶buffer(bytes.Buffer)い程块HTML
+	// header/admin/menuい攫瓜秙玡狠粂猭
 	header := aTree().GetTreeHeader()
+
+	// aBoxplugins\admin\controller\common.goい
+	// aBox砞竚BoxAttribute(琌struct琌interface)
+	// SetHeaderSetBodyGetContent常BoxAttributeよ猭
+	// 常琌盢把计砞竚BoxAttribute(struct)
+	// GetContentㄌ耞兵ン砞竚BoxAttribute.Style
+	// 盢才BoxAttribute.TemplateList["box"](map[string]string)text(string)钡帝盢把计の睰倒穝家狾秆猂家狾砰
+	// 盢把计compo糶buffer(bytes.Buffer)い程块HTML
 	box := aBox().SetHeader(header).SetBody(tree).GetContent()
 	col1 := aCol().SetSize(types.SizeMD(6)).SetContent(box).GetContent()
 
