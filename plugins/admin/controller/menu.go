@@ -21,8 +21,9 @@ import (
 )
 
 // ShowMenu show menu info page.
+// だ矪瞶场虫HTML粂猭程挡块HTML
 func (h *Handler) ShowMenu(ctx *context.Context) {
-	// getMenuInfoPanel(眔menu戈癟狾)
+	// getMenuInfoPanel(眔垫虫戈癟狾)だ矪瞶场虫HTML粂猭程挡块HTML
 	h.getMenuInfoPanel(ctx, "")
 }
 
@@ -63,6 +64,7 @@ func (h *Handler) showNewMenu(ctx *context.Context, err error) {
 }
 
 // ShowEditMenu show edit menu page.
+// 
 func (h *Handler) ShowEditMenu(ctx *context.Context) {
 
 	// 浪琩urlいid把计(琌璶絪胯琘menu惠璶砞竚id = ?)
@@ -74,9 +76,15 @@ func (h *Handler) ShowEditMenu(ctx *context.Context) {
 		return
 	}
 
+	// 硓筁把计"menu"眔Table(interface)钡帝耞兵ン盢[]context.NodeHandler.operations肚
 	model := h.table("menu", ctx)
-	formInfo, err := model.GetDataWithId(parameter.BaseParam().WithPKs(ctx.Query("id")))
 
+	// BaseParam砞竚(计の计Size)Parameters(struct)肚
+	// WithPKs盢把计(string)挡砞竚Parameters.Fields["__pk"]肚
+	// GetDataWithIdplugins\admin\modules\table\default.go
+	
+
+	// 硓筁把计ctx肚ヘ玡祅ノめ(Context.UserValue["user"])锣传ΘUserModel
 	user := auth.Auth(ctx)
 
 	if err != nil {
@@ -99,6 +107,13 @@ func (h *Handler) showEditMenu(ctx *context.Context, formInfo table.FormInfo, er
 		alert = aAlert().Warning(err.Error())
 	}
 
+
+	// aFormplugins\admin\controller\common.goい
+	// aForm砞竚FormAttribute(琌struct琌interface)
+	// 盢把计砞竚FormFields(struct)
+	// 耞兵ン盢FormFields睰FormAttribute.ContentList([]FormFields)
+    // 钡帝盢才FormAttribute.TemplateList["components/把计"](map[string]string)text(string)钡帝盢把计の睰倒穝家狾秆猂家狾砰
+	// 盢把计compo糶buffer(bytes.Buffer)い程块HTML肚
 	h.HTML(ctx, auth.Auth(ctx), types.Panel{
 		Content: alert + formContent(aForm().
 			SetContent(formInfo.FieldList).
@@ -255,6 +270,7 @@ func (h *Handler) MenuOrder(ctx *context.Context) {
 	response.Ok(ctx)
 }
 
+// getMenuInfoPanel(眔垫虫戈癟狾)だ矪瞶场虫HTML粂猭程挡块HTML
 func (h *Handler) getMenuInfoPanel(ctx *context.Context, alert template2.HTML) {
 	// 硓筁把计ctx肚ヘ玡祅ノめ(Context.UserValue["user"])锣传ΘUserModel
 	user := auth.Auth(ctx)
@@ -266,7 +282,7 @@ func (h *Handler) getMenuInfoPanel(ctx *context.Context, alert template2.HTML) {
 	// 常琌盢把计砞竚TreeAttribute(struct)
 	// GetContent盢才compo.TemplateList["components/tree"](map[string]string)text(string)钡帝盢把计の睰倒穝家狾秆猂家狾砰
 	// 盢把计compo糶buffer(bytes.Buffer)い程块HTML
-	// tree/admin/menuい陪ボ攫瓜玡狠粂猭
+	// tree/admin/menuい陪ボ攫瓜玡狠粂猭(碝тHTML id="tree-model")
 	tree := aTree().
 		SetTree((menu.GetGlobalMenu(user, h.conn)).List).
 		SetEditUrl(h.routePath("menu_edit_show")).
@@ -279,6 +295,7 @@ func (h *Handler) getMenuInfoPanel(ctx *context.Context, alert template2.HTML) {
 	// 盢才compo.TemplateList["components/tree-header"](map[string]string)text(string)钡帝盢把计の睰倒穝家狾秆猂家狾砰
 	// 盢把计compo糶buffer(bytes.Buffer)い程块HTML
 	// header/admin/menuい攫瓜秙玡狠粂猭
+	// header碝тclass="btn-group"
 	header := aTree().GetTreeHeader()
 
 	// aBoxplugins\admin\controller\common.goい
@@ -288,11 +305,33 @@ func (h *Handler) getMenuInfoPanel(ctx *context.Context, alert template2.HTML) {
 	// GetContentㄌ耞兵ン砞竚BoxAttribute.Style
 	// 盢才BoxAttribute.TemplateList["box"](map[string]string)text(string)钡帝盢把计の睰倒穝家狾秆猂家狾砰
 	// 盢把计compo糶buffer(bytes.Buffer)い程块HTML
+	// box碝тclass="box box-"夹繷headerず甧tree(场虫粂猭)
 	box := aBox().SetHeader(header).SetBody(tree).GetContent()
+
+	// aColplugins\admin\controller\common.goい
+	// aCol砞竚ColAttribute(琌struct琌interface)
+	// SetSizeSetContentGetContent常琌ColAttributeよ猭
+	// 常琌盢把计砞竚ColAttribute(struct)
+	// GetContent盢才ColAttribute.TemplateList["col"](map[string]string)text(string)钡帝盢把计の睰倒穝家狾秆猂家狾砰
+	// 盢把计compo糶buffer(bytes.Buffer)い程块HTML
+	// col1碝тclass="col-md-6"ず甧box(场虫瓜HTML粂猭)
 	col1 := aCol().SetSize(types.SizeMD(6)).SetContent(box).GetContent()
 
+	// BaseTable妮Table(interface)
+	// table硓筁把计"menu"眔Table(interface)钡帝耞兵ン盢[]context.NodeHandler.operations肚
+	// GetNewFormplugins\admin\modules\table\default.go
+	// GetNewForm(眔穝虫)耞兵ン(TabGroups)砞竚FormInfo(struct)肚
 	formInfo := h.table("menu", ctx).GetNewForm()
 
+	// aFormplugins\admin\controller\common.goい
+	// aForm砞竚FormAttribute(琌struct琌interface)
+	// 盢把计砞竚FormFields(struct)
+	// 耞兵ン盢FormFields睰FormAttribute.ContentList([]FormFields)
+    // 钡帝盢才FormAttribute.TemplateList["components/把计"](map[string]string)text(string)钡帝盢把计の睰倒穝家狾秆猂家狾砰
+	// 盢把计compo糶buffer(bytes.Buffer)い程块HTML肚
+	// menuFormContent(垫虫虫ず甧)盢才BoxAttribute.TemplateList["box"](map[string]string)text(string)钡帝盢把计の睰倒穝家狾秆猂家狾砰
+	// 盢把计compo糶buffer(bytes.Buffer)い程块HTML
+	// newForm场穝虫HTML粂猭
 	newForm := menuFormContent(aForm().
 		SetPrefix(h.config.PrefixFixSlash()).
 		SetUrl(h.routePath("menu_new")).
@@ -307,10 +346,23 @@ func (h *Handler) getMenuInfoPanel(ctx *context.Context, alert template2.HTML) {
 		SetTabContents(formInfo.GroupFieldList).
 		SetTabHeaders(formInfo.GroupFieldHeaders))
 
+	// aColplugins\admin\controller\common.goい
+	// aCol砞竚ColAttribute(琌struct琌interface)
+	// SetSizeSetContentGetContent常琌ColAttributeよ猭
+	// GetContent盢才ColAttribute.TemplateList["col"](map[string]string)text(string)钡帝盢把计の睰倒穝家狾秆猂家狾砰
+	// 盢把计compo糶buffer(bytes.Buffer)い程块HTML
+	// col2碝тclass="col-md-6"ず甧newForm(场穝虫HTML粂猭)
 	col2 := aCol().SetSize(types.SizeMD(6)).SetContent(newForm).GetContent()
 
+	// aRowplugins\admin\controller\common.goい
+	// aRow砞竚RowAttribute(琌struct琌interface)
+	// template\components\composer.go
+	// 盢才RowAttribute.TemplateList["components/row"](map[string]string)text(string)钡帝盢把计の睰倒穝家狾秆猂家狾砰
+	// 盢把计compo糶buffer(bytes.Buffer)い程块HTML
+	// row碝тclass="row"ず甧场┮Τ虫HTML粂猭
 	row := aRow().SetContent(col1 + col2).GetContent()
 
+	// 块HTML
 	h.HTML(ctx, user, types.Panel{
 		Content:     alert + row,
 		Description: "Menus Manage",

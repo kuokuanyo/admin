@@ -138,34 +138,57 @@ func (t Type) String() string {
 	}
 }
 
+// 判斷t(unit8)是否符合條件
 func (t Type) IsSelect() bool {
+	// Select = 3
+	// SelectSingle = 2
+	// SelectBox = 5
+	// Radio = 12
+	// Switch = 2
 	return t == Select || t == SelectSingle || t == SelectBox || t == Radio || t == Switch
 }
 
+// 判斷t(unit8)是否符合條件
 func (t Type) IsSingleSelect() bool {
+	// SelectSingle = 2
+	// Radio = 12
+	// Switch = 2
 	return t == SelectSingle || t == Radio || t == Switch
 }
 
+// 判斷t(unit8)是否符合條件
 func (t Type) IsMultiSelect() bool {
+	// Select = 3
+	// SelectBox = 5
 	return t == Select || t == SelectBox
 }
 
+// 判斷t(unit8)是否符合條件
 func (t Type) IsRange() bool {
+	// DatetimeRange = 11
+	// NumberRange = 19
 	return t == DatetimeRange || t == NumberRange
 }
 
+// 判斷t(unit8)是否符合條件
 func (t Type) IsFile() bool {
+	// File = 6
+	// Multifile = 7
 	return t == File || t == Multifile
 }
 
+// 判斷t(unit8)是否符合條件
 func (t Type) IsCode() bool {
+	// Code = 23
 	return t == Code
 }
 
+// 判斷t(unit8)是否符合條件
 func (t Type) IsCustom() bool {
 	return t == Custom
 }
 
+// 判斷條件後回傳[]template.HTML
 func (t Type) SelectedLabel() []template.HTML {
 	if t == Select || t == SelectSingle || t == SelectBox {
 		return []template.HTML{"selected", ""}

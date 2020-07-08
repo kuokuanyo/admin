@@ -1,6 +1,10 @@
 package table
 
 import (
+	"html/template"
+	"sync"
+	"sync/atomic"
+
 	"github.com/GoAdminGroup/go-admin/context"
 	"github.com/GoAdminGroup/go-admin/modules/db"
 	"github.com/GoAdminGroup/go-admin/modules/service"
@@ -8,9 +12,6 @@ import (
 	"github.com/GoAdminGroup/go-admin/plugins/admin/modules/paginator"
 	"github.com/GoAdminGroup/go-admin/plugins/admin/modules/parameter"
 	"github.com/GoAdminGroup/go-admin/template/types"
-	"html/template"
-	"sync"
-	"sync/atomic"
 )
 
 type Generator func(ctx *context.Context) Table
@@ -69,6 +70,7 @@ type Table interface {
 	Copy() Table
 }
 
+// BaseTable妮Table(interface)
 type BaseTable struct {
 	Info       *types.InfoPanel
 	Form       *types.FormPanel
@@ -80,7 +82,10 @@ type BaseTable struct {
 	PrimaryKey PrimaryKey
 }
 
+// 盢把计砞竚base.Info(InfoPanel(struct)).primaryKeyい肚
 func (base *BaseTable) GetInfo() *types.InfoPanel {
+	// template\types\info.goい
+	// 盢把计砞竚InfoPanel(struct).primaryKeyい肚
 	return base.Info.SetPrimaryKey(base.PrimaryKey.Name, base.PrimaryKey.Type)
 }
 
@@ -95,7 +100,10 @@ func (base *BaseTable) GetDetailFromInfo() *types.InfoPanel {
 	return detail
 }
 
+// 盢把计砞竚base.Form(InfoPanel(struct)).primaryKeyい肚
 func (base *BaseTable) GetForm() *types.FormPanel {
+	// template\types\info.goい
+	// 盢把计砞竚InfoPanel(struct).primaryKeyい肚
 	return base.Form.SetPrimaryKey(base.PrimaryKey.Name, base.PrimaryKey.Type)
 }
 

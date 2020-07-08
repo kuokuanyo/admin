@@ -82,8 +82,10 @@ func (admin *Admin) initRouter() *Admin {
 	// -----------临ぃ笵order把计砞竚-----------
 	authRoute.POST("/menu/order", admin.handler.MenuOrder).Name("menu_order")
 
-
+	//だ矪瞶场虫HTML粂猭程挡块HTML
 	authRoute.GET("/menu", admin.handler.ShowMenu).Name("menu")
+
+	
 	authRoute.GET("/menu/edit/show", admin.handler.ShowEditMenu).Name("menu_edit_show")
 	authRoute.GET("/menu/new", admin.handler.ShowNewMenu).Name("menu_new_show")
 

@@ -838,36 +838,43 @@ func (i *InfoPanel) AddXssJsFilter() *InfoPanel {
 	return i
 }
 
+// 盢把计砞竚InfoPanel(struct).DeleteHookい肚
 func (i *InfoPanel) SetDeleteHook(fn DeleteFn) *InfoPanel {
 	i.DeleteHook = fn
 	return i
 }
 
+// 盢把计砞竚InfoPanel(struct).DeleteHookWithResい肚
 func (i *InfoPanel) SetDeleteHookWithRes(fn DeleteFnWithRes) *InfoPanel {
 	i.DeleteHookWithRes = fn
 	return i
 }
 
+// 盢把计砞竚InfoPanel(struct).QueryFilterFnい肚
 func (i *InfoPanel) SetQueryFilterFn(fn QueryFilterFn) *InfoPanel {
 	i.QueryFilterFn = fn
 	return i
 }
 
+// 盢把计砞竚InfoPanel(struct).PreDeleteFnい肚
 func (i *InfoPanel) SetPreDeleteFn(fn DeleteFn) *InfoPanel {
 	i.PreDeleteFn = fn
 	return i
 }
 
+// 盢把计砞竚InfoPanel(struct).DeleteFnい肚
 func (i *InfoPanel) SetDeleteFn(fn DeleteFn) *InfoPanel {
 	i.DeleteFn = fn
 	return i
 }
 
+// 盢把计砞竚InfoPanel(struct).GetDataFnい肚
 func (i *InfoPanel) SetGetDataFn(fn GetDataFn) *InfoPanel {
 	i.GetDataFn = fn
 	return i
 }
 
+// 盢把计砞竚InfoPanel(struct).primaryKeyい肚
 func (i *InfoPanel) SetPrimaryKey(name string, typ db.DatabaseType) *InfoPanel {
 	i.primaryKey = primaryKey{Name: name, Type: typ}
 	return i

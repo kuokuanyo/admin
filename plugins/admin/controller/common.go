@@ -77,12 +77,24 @@ func (h *Handler) SetRoutes(r context.RouterMap) {
 	h.routes = r
 }
 
+// BaseTable也屬於Table(interface)
+// 先透過參數prefix取得Table(interface)，接著判斷條件後將[]context.Node加入至Handler.operations後回傳
 func (h *Handler) table(prefix string, ctx *context.Context) table.Table {
 	// 透過參數prefix取得h.generators[prefix]的值(func(ctx *context.Context) Table)
 	t := h.generators[prefix](ctx)
+
+	// 建立Invoker(Struct)並透過參數ctx取得UserModel，並且取得該user的role、權限與可用menu，最後檢查用戶權限
+	// GetConnection取得匹配的service.Service然後轉換成Connection(interface)類別
 	authHandler := auth.Middleware(db.GetConnection(h.services))
+
+	// BaseTable也屬於Table(interface)
+	// GetInfo在plugins\admin\modules\table\table.go，為Table(interface)的方法
+	// 將參數值設置至base.Info(InfoPanel(struct)).primaryKey中後回傳
+	// Callbacks類別為[]context.Node(struct)
 	for _, cb := range t.GetInfo().Callbacks {
+		// ContextNodeNeedAuth = need_auth
 		if cb.Value[constant.ContextNodeNeedAuth] == 1 {
+			// 判斷條件後將參數(類別context.Node)添加至Handler.operations
 			h.addOperation(context.Node{
 				Path:     cb.Path,
 				Method:   cb.Method,
@@ -92,8 +104,12 @@ func (h *Handler) table(prefix string, ctx *context.Context) table.Table {
 			h.addOperation(context.Node{Path: cb.Path, Method: cb.Method, Handlers: cb.Handlers})
 		}
 	}
+
+	// GetForm在plugins\admin\modules\table\table.go，為Table(interface)的方法
+	// 將參數值設置至base.Form(InfoPanel(struct)).primaryKey中後回傳
 	for _, cb := range t.GetForm().Callbacks {
 		if cb.Value[constant.ContextNodeNeedAuth] == 1 {
+			// 判斷條件後將參數(類別context.Node)添加至Handler.operations
 			h.addOperation(context.Node{
 				Path:     cb.Path,
 				Method:   cb.Method,
@@ -118,12 +134,15 @@ func (h *Handler) routePathWithPrefix(name string, prefix string) string {
 	return h.routePath(name, "prefix", prefix)
 }
 
+// 判斷條件後將參數(類別context.Node)添加至Handler.operations
 func (h *Handler) addOperation(nodes ...context.Node) {
 	h.operationLock.Lock()
 	defer h.operationLock.Unlock()
 	// TODO: 避免重复增加，第一次加入后，后面大部分会存在重复情况，以下循环可以优化
 	addNodes := make([]context.Node, 0)
 	for _, node := range nodes {
+		// 在Handler.operations([]context.Node)執行迴圈，如果條件符合參數path、method則回傳true
+		// 代表Handler.operations裡已經存在，則不添加
 		if h.searchOperation(node.Path, node.Method) {
 			continue
 		}
@@ -144,6 +163,7 @@ func (h *Handler) AddNavButtonFront(btn types.Button) {
 	h.addOperation(btn.GetAction().GetCallbacks())
 }
 
+// 在Handler.operations([]context.Node)執行迴圈，如果條件符合參數path、method則回傳true
 func (h *Handler) searchOperation(path, method string) bool {
 	for _, node := range h.operations {
 		if node.Path == path && node.Method == method {
@@ -212,14 +232,23 @@ func aAlert() types.AlertAttribute {
 }
 
 func aForm() types.FormAttribute {
+	// aTemplate判斷templateMap(map[string]Template)的key鍵是否參數globalCfg.Theme，有則回傳Template(interface)
+	// Form在template\components\base.go中
+	// Form為Template(interface)的方法，建立FormAttribute(struct)並設置值後回傳
 	return aTemplate().Form()
 }
 
 func aRow() types.RowAttribute {
+	// aTemplate判斷templateMap(map[string]Template)的key鍵是否參數globalCfg.Theme，有則回傳Template(interface)
+	// Row在template\components\base.go中
+	// Row為Template(interface)的方法，建立RowAttribute(struct)並設置值後回傳
 	return aTemplate().Row()
 }
 
 func aCol() types.ColAttribute {
+	// aTemplate判斷templateMap(map[string]Template)的key鍵是否參數globalCfg.Theme，有則回傳Template(interface)
+	// Col在template\components\base.go中
+	// Col為Template(interface)的方法，建立ColAttribute(struct)並設置值後回傳
 	return aTemplate().Col()
 }
 
@@ -402,7 +431,16 @@ func detailContent(form types.FormAttribute, editUrl, deleteUrl string) template
 		GetContent()
 }
 
+// menuFormContent(菜單表單內容)將符合BoxAttribute.TemplateList["box"](map[string]string)的值加入text(string)，接著將參數及功能添加給新的模板並解析為模板的主體
+// 將參數compo寫入buffer(bytes.Buffer)中最後輸出HTML
 func menuFormContent(form types.FormAttribute) template2.HTML {
+	// aBox在plugins\admin\controller\common.go中
+	// aBox設置BoxAttribute(是struct也是interface)
+	// SetHeader、SetStyle、SetBody、GetContent、WithHeadBorder都為BoxAttribute的方法
+	// 都是將參數值設置至BoxAttribute(struct)
+	// GetContent先依判斷條件設置BoxAttribute.Style
+	// 將符合BoxAttribute.TemplateList["box"](map[string]string)的值加入text(string)，接著將參數及功能添加給新的模板並解析為模板的主體
+	// 將參數compo寫入buffer(bytes.Buffer)中最後輸出HTML
 	return aBox().
 		SetHeader(form.GetBoxHeaderNoButton()).
 		SetStyle(" ").

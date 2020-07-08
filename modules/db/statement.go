@@ -84,6 +84,7 @@ func WithDriver(conn Connection) *SQL {
 }
 
 // WithDriverAndConnection return a SQL with given driver and connection name.
+// 將參數設置(connName、conn)並回傳sql(struct)
 func WithDriverAndConnection(connName string, conn Connection) *SQL {
 	sql := newSQL()
 	sql.diver = conn
@@ -114,13 +115,16 @@ func (sql *SQL) WithTx(tx *dbsql.Tx) *SQL {
 }
 
 // TableName set table of SQL.
+// 將SQL(struct)資訊清除後將參數設置至SQL.TableName回傳
 func (sql *SQL) Table(table string) *SQL {
+	// 將SQL(struct)資訊清除
 	sql.clean()
 	sql.TableName = table
 	return sql
 }
 
 // Select set select fields.
+// 將參數設置至SQL(struct).Fields並且設置SQL(struct).Functions
 func (sql *SQL) Select(fields ...string) *SQL {
 	sql.Fields = fields
 	sql.Functions = make([]string, len(fields))
@@ -666,6 +670,7 @@ func (sql *SQL) wrap(field string) string {
 	return sql.diver.GetDelimiter() + field + sql.diver.GetDelimiter()
 }
 
+// 將SQL(struct)資訊清除
 func (sql *SQL) clean() {
 	sql.Functions = make([]string, 0)
 	sql.Group = ""

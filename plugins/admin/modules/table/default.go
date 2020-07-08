@@ -145,6 +145,7 @@ type GetDataFromURLRes struct {
 	Size int
 }
 
+// getDataFromURL(從url中取得data)
 func (tb DefaultTable) getDataFromURL(params parameter.Parameters) ([]map[string]interface{}, int) {
 
 	u := ""
@@ -541,6 +542,7 @@ func (tb DefaultTable) getDataFromDatabase(params parameter.Parameters) (PanelIn
 	}, nil
 }
 
+// 假設參數list([]map[string]interface{})長度大於零則回傳list[0](map[string]interface{})
 func getDataRes(list []map[string]interface{}, _ int) map[string]interface{} {
 	if len(list) > 0 {
 		return list[0]
@@ -555,9 +557,11 @@ func (tb DefaultTable) GetDataWithId(param parameter.Parameters) (FormInfo, erro
 		res     map[string]interface{}
 		columns Columns
 		custom  = tb.getDataFun != nil || tb.sourceURL != "" || tb.Info.GetDataFn != nil
+		// PK透過參數__pk尋找Parameters.Fields[__pk]是否存在，如果存在則回傳第一個value值(string)並且用","拆解成[]string，回傳第一個數值
 		id      = param.PK()
 	)
 
+	// getDataRes假設參數list([]map[string]interface{})長度大於零則回傳list[0](map[string]interface{})
 	if tb.getDataFun != nil {
 		res = getDataRes(tb.getDataFun(param))
 	} else if tb.sourceURL != "" {
@@ -945,12 +949,16 @@ func (tb DefaultTable) DeleteData(id string) error {
 	return err
 }
 
+// GetNewForm(取得新表單)判斷條件(TabGroups)後，設置FormInfo(struct)後並回傳
 func (tb DefaultTable) GetNewForm() FormInfo {
 
 	if len(tb.Form.TabGroups) == 0 {
+		// 在template\types\form.go
+		// FillCustomContent(填寫自定義內容)對FormFields([]FormField)執行迴圈，判斷條件後設置FormField，最後回傳FormFields([]FormField)
 		return FormInfo{FieldList: tb.Form.FieldsWithDefaultValue(tb.sql).FillCustomContent()}
 	}
 
+	// GroupField(欄位分組)先判斷條件後處理FormField，最後將FormField與TabHeader加入至groupFormList與groupHeaders後回傳
 	newForm, headers := tb.Form.GroupField(tb.sql)
 
 	return FormInfo{GroupFieldList: newForm, GroupFieldHeaders: headers}
@@ -1000,13 +1008,16 @@ func (tb DefaultTable) delimiter() string {
 	return ""
 }
 
+// getDataFromDB(從資料庫取得資料)判斷條件
 func (tb DefaultTable) getDataFromDB() bool {
 	return tb.sourceURL == "" && tb.getDataFun == nil && tb.Info.GetDataFn == nil && tb.Detail.GetDataFn == nil
 }
 
 // sql is a helper function return db sql.
 func (tb DefaultTable) sql() *db.SQL {
+	// getDataFromDB(從資料庫取得資料)判斷條件
 	if tb.connectionDriver != "" && tb.getDataFromDB() {
+		// WithDriverAndConnection將參數設置(connName、conn)並回傳sql(struct)
 		return db.WithDriverAndConnection(tb.connection, db.GetConnectionFromService(services.Get(tb.connectionDriver)))
 	}
 	return nil
@@ -1014,6 +1025,7 @@ func (tb DefaultTable) sql() *db.SQL {
 
 type Columns []string
 
+// getColumns(取得欄位)
 func (tb DefaultTable) getColumns(table string) (Columns, bool) {
 
 	columnsModel, _ := tb.sql().Table(table).ShowColumns()

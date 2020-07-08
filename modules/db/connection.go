@@ -102,7 +102,7 @@ func GetConnectionFromService(srv interface{}) Connection {
 }
 
 // service.List類別為map[string]Service，Service是interface(Name方法)
-// 取得匹配的service.List然後轉換成Connection(interface)類別
+// 取得匹配的service.Service然後轉換成Connection(interface)類別
 func GetConnection(srvs service.List) Connection {
 	// config.GetDatabases()設置DatabaseList，在modules\config\config.go
 	// GetDefault取得預設資料庫DatabaseList["default"]的值
