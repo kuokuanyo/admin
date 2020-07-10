@@ -123,6 +123,7 @@ func GetGlobalMenu(user models.UserModel, conn db.Connection) *Menu {
 		// 在modules\db\statement.go中，回傳SQL(struct)藉由給定的conn
 		// 取得多筆資料(利用where、order等篩選)
 		// 篩選函式在modules\db\statement.go
+		// menus依照order欄位升冪排列
 		menus, _ = db.WithDriver(conn).Table("goadmin_menu").
 			Where("id", ">", 0).
 			OrderBy("order", "asc").
@@ -134,6 +135,7 @@ func GetGlobalMenu(user models.UserModel, conn db.Connection) *Menu {
 			ids = append(ids, user.MenuIds[i])
 		}
 
+		// menus依照order欄位升冪排列
 		menus, _ = db.WithDriver(conn).Table("goadmin_menu").
 			WhereIn("id", ids).
 			OrderBy("order", "asc").
@@ -153,7 +155,7 @@ func GetGlobalMenu(user models.UserModel, conn db.Connection) *Menu {
 
 		menuOption = append(menuOption, map[string]string{
 			"id":    strconv.FormatInt(menus[i]["id"].(int64), 10),
-			"title": title,
+			"title": title, 
 		})
 	}
 
@@ -162,10 +164,10 @@ func GetGlobalMenu(user models.UserModel, conn db.Connection) *Menu {
 
 	return &Menu{
 		//清單
-		List:     menuList,
+		List:     menuList, // 所有菜單資訊([]Item)，Item為資料表goadmin_menu的欄位
 		//選項
-		Options:  menuOption,
-		MaxOrder: menus[len(menus)-1]["parent_id"].(int64),
+		Options:  menuOption, // 設置每個菜單的id、title
+		MaxOrder: menus[len(menus)-1]["parent_id"].(int64), // ex: 1
 	}
 }
 

@@ -79,14 +79,16 @@ func (admin *Admin) initRouter() *Admin {
 	authRoute.POST("/menu/edit", admin.guardian.MenuEdit, admin.handler.EditMenu).Name("menu_edit")
 
 	// 眔multipart/form-dataい_order把计эmenu抖
-	// -----------临ぃ笵order把计砞竚-----------
+	// 把计砞竚絛ㄒ:_order: [{"id":7},{"id":1,"children":[{"id":2},{"id":3},{"id":4},{"id":5},{"id":6}]},{"id":15},{"id":17},{"id":16}])
 	authRoute.POST("/menu/order", admin.handler.MenuOrder).Name("menu_order")
 
 	//だ矪瞶场虫HTML粂猭程挡块HTML
 	authRoute.GET("/menu", admin.handler.ShowMenu).Name("menu")
 
-	
+	// 浪琩砞竚把计(id = ?)琌才兵ン钡帝硓筁id眔goadmin_menu戈い戈礛砞竚FormInfo(struct)い
+	// 程FormInfo(struct)蹲絪胯ざHTML粂猭
 	authRoute.GET("/menu/edit/show", admin.handler.ShowEditMenu).Name("menu_edit_show")
+
 	authRoute.GET("/menu/new", admin.handler.ShowNewMenu).Name("menu_new_show")
 
 	// Group盢把计"/"auth.middleware(admin.Conn)admin.guardian.CheckPrefix穝糤RouterGroup(struct)

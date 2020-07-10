@@ -12,7 +12,7 @@ import (
 )
 
 // CommonQuery is a common method of query.
-// 查詢方法
+// 查詢資料並回傳
 func CommonQuery(db *sql.DB, query string, args ...interface{}) ([]map[string]interface{}, error) {
 
 	//查詢

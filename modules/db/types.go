@@ -198,15 +198,19 @@ func (v Value) HTML() template.HTML {
 	return template.HTML(v)
 }
 
+// GetValueFromDatabaseType(?????????)?SQL?JSON???
 func GetValueFromDatabaseType(typ DatabaseType, value interface{}, json bool) Value {
 	if json {
+		// ?????JSON???
 		return GetValueFromJSONOfDatabaseType(typ, value)
 	} else {
+		// ?????SQL???
 		return GetValueFromSQLOfDatabaseType(typ, value)
 	}
 }
 
 // GetValueFromDatabaseType return Value of given DatabaseType and interface.
+// ????typ?value?SQL?????
 func GetValueFromSQLOfDatabaseType(typ DatabaseType, value interface{}) Value {
 	switch {
 	case Contains(typ, StringTypeList):
@@ -248,6 +252,7 @@ func GetValueFromSQLOfDatabaseType(typ DatabaseType, value interface{}) Value {
 }
 
 // GetValueFromJSONOfDatabaseType return Value of given DatabaseType and interface from JSON string value.
+// ????typ?value?JSON?????
 func GetValueFromJSONOfDatabaseType(typ DatabaseType, value interface{}) Value {
 	switch {
 	case Contains(typ, StringTypeList):

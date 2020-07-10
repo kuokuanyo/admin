@@ -479,9 +479,13 @@ func (sql *SQL) All() ([]map[string]interface{}, error) {
 }
 
 // ShowColumns show columns info.
+// 取得所有欄位資訊
 func (sql *SQL) ShowColumns() ([]map[string]interface{}, error) {
+	//最後清空sql資訊
 	defer RecycleSQL(sql)
 
+	// QueryWithConnection有給定連接(conn)名稱，透過參數con查詢db.DbList[sql.conn]資料並回傳
+	// ShowColumns透過參數回傳 "show columns in " + sql.TableNam
 	return sql.diver.QueryWithConnection(sql.conn, sql.dialect.ShowColumns(sql.TableName))
 }
 

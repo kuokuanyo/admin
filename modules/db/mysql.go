@@ -79,8 +79,9 @@ func (db *Mysql) InitDB(cfgs map[string]config.Database) Connection {
 }
 
 // QueryWithConnection implements the method Connection.QueryWithConnection.
-// 有給定連接(conn)名稱
+// 有給定參數連接(conn)名稱，透過參數con查詢db.DbList[con]資料並回傳
 func (db *Mysql) QueryWithConnection(con string, query string, args ...interface{}) ([]map[string]interface{}, error) {
+	// CommonQuery查詢資料並回傳
 	return CommonQuery(db.DbList[con], query, args...)
 }
 
@@ -91,8 +92,9 @@ func (db *Mysql) ExecWithConnection(con string, query string, args ...interface{
 }
 
 // Query implements the method Connection.Query.
-// 沒有給定連接(conn)名稱
+// 沒有給定連接(conn)名稱，透過參數查詢db.DbList["default"]資料並回傳
 func (db *Mysql) Query(query string, args ...interface{}) ([]map[string]interface{}, error) {
+	// CommonQuery查詢資料並回傳
 	return CommonQuery(db.DbList["default"], query, args...)
 }
 

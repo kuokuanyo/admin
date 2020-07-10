@@ -551,6 +551,7 @@ func getDataRes(list []map[string]interface{}, _ int) map[string]interface{} {
 }
 
 // GetDataWithId query the single row of data.
+// GetDataWithId(³z¹Lid¨ú±o¸ê®Æ)³z¹Lid¨ú±ogoadmin_menu¸ê®Æªí¤¤ªº¸ê®Æ¡A±µµÛ¹ï¦³±a­ÈªºÄæ¦ì§ó·s¨Ã¥[¤JFormFields«á¦^¶Ç¡A³Ì«á³]¸m­È¦ÜFormInfo(struct)¤¤
 func (tb DefaultTable) GetDataWithId(param parameter.Parameters) (FormInfo, error) {
 
 	var (
@@ -572,18 +573,31 @@ func (tb DefaultTable) GetDataWithId(param parameter.Parameters) (FormInfo, erro
 		res = getDataRes(tb.Info.GetDataFn(param))
 	} else {
 
+		// getColumns(¨ú±oÄæ¦ì)±NÄæ¦ì¦WºÙ¥[¤Jcolumns([]string)
+		// ¦pªG¦³­È¬Oprimary_key¨Ã¥B¦Û°Ê»¼¼W«hbool = true¡A³Ì«á¦^¶ÇÄæ¦ì¦WºÙ¤Îbool
+		// columns¬°goadmin_menu©Ò¦³Äæ¦ì¦WºÙ
 		columns, _ = tb.getColumns(tb.Form.Table)
+
 
 		var (
 			fields, joinFields, joins, groupBy = "", "", "", ""
 
 			err            error
 			joinTables     = make([]string, 0)
+			// args¬°½s¿èªºid
 			args           = []interface{}{id}
+			// db³z¹L°Ñ¼Æ(k)¨ú±o¤Ç°tªºService(interface)¡A±µµÛ±N°Ñ¼Æservices.Get(tb.connectionDriver)Âà´«¬°Connection(interface)¦^¶Ç¨Ã¦^¶Ç
 			connection     = tb.db()
+			// GetDelimiter¬°mysql¨Ï¥Îªº¤À¹j²Å
 			delimiter      = connection.GetDelimiter()
+			// GetForm±N°Ñ¼Æ­È³]¸m¦ÜBaseTable.Form(FormPanel(struct)).primaryKey¤¤«á¦^¶Ç
+			// tablename = goadmin_menu
 			tableName      = tb.GetForm().Table
+			// Delimiter¦bplugins\admin\modules\table\default.go
+			// Delimiter§PÂ_°Ñ¼Ædel«á¦^¶Çdel+s(°Ñ¼Æ)+del©Î[s(°Ñ¼Æ)]
+			// pk = goadmin_menu.'id'
 			pk             = tableName + "." + modules.Delimiter(delimiter, tb.PrimaryKey.Name)
+			// queryStatement¨ú±ogoadmin_menu¬Y¤@µ§¸ê®Æ(®Ú¾Úid)
 			queryStatement = "select %s from " + modules.Delimiter(delimiter, "%s") + " %s where " + pk + " = ? %s "
 		)
 
@@ -591,15 +605,20 @@ func (tb DefaultTable) GetDataWithId(param parameter.Parameters) (FormInfo, erro
 			queryStatement = "select %s from %s %s where " + pk + " = ? %s "
 		}
 
+		// tb.Form.FieldList¬°ªí³æ©Ò¦³Äæ¦ì¸ê°T
 		for _, field := range tb.Form.FieldList {
-
 			if field.Field != pk && modules.InArray(columns, field.Field) &&
+			// Valid¦btemplate\types\info.go
+			// ¹ïjoins([]join(struct))°õ¦æ°j°é¡A°²³]JoinªºTable¡BField¡BJoinFieldm¤£¬°ªÅ¡A¦^¶Çtrue
 				!field.Joins.Valid() {
+				// ±N©Ò¦³Äæ¦ì¦WºÙm¥[¤W¸ê®Æªí¦W(ex:tablename.colname)
+				// ex:goadmin_menu.`id`,goadmin_menu.`parent_id`,goadmin_menu.`title`,...
 				fields += tableName + "." + modules.FilterField(field.Field, delimiter) + ","
 			}
 
 			headField := field.Field
 
+			// ¦b½s¿è­¶­±®É¤£·|°õ¦æ¤U¦C§PÂ_(¨S¦³join)
 			if field.Joins.Valid() {
 				headField = field.Joins.Last().Table + parameter.FilterParamJoinInfix + field.Field
 				joinFields += db.GetAggregationExpression(connection.Name(), field.Joins.Last().Table+"."+
@@ -618,9 +637,13 @@ func (tb DefaultTable) GetDataWithId(param parameter.Parameters) (FormInfo, erro
 			}
 		}
 
+		// fields¦A¥[¤W"goadmin_menu.`id`"
 		fields += pk
+
 		groupFields := fields
 
+
+		// ¦b½s¿è­¶­±®É¤£·|°õ¦æ¤U¦C§PÂ_(¨S¦³joinFields)
 		if joinFields != "" {
 			fields += "," + joinFields[:len(joinFields)-1]
 			if connection.Name() == db.DriverMssql {
@@ -635,6 +658,7 @@ func (tb DefaultTable) GetDataWithId(param parameter.Parameters) (FormInfo, erro
 			}
 		}
 
+		// ¦b½s¿è­¶­±®É¤£·|°õ¦æ¤U¦C§PÂ_(¨S¦³joinTables)
 		if len(joinTables) > 0 {
 			if connection.Name() == db.DriverMssql {
 				groupBy = " GROUP BY " + groupFields
@@ -645,11 +669,18 @@ func (tb DefaultTable) GetDataWithId(param parameter.Parameters) (FormInfo, erro
 
 		queryCmd := fmt.Sprintf(queryStatement, fields, tableName, joins, groupBy)
 
+		// ¦L¥Xsql¸ê®Æ(½s¿è­¶­±®É¨S¦³¦L¥X)
 		logger.LogSQL(queryCmd, args)
 
+
+		// ¨ú±o³æµ§¸ê®Æ(§Q¥Îid)
+		// QueryWithConnection(connection¤èªk)¦badmin\modules\db\mysql.go
+		// QueryWithConnection¦³µ¹©w³s±µ(tb.connection)¦WºÙ¡A³z¹L°Ñ¼Ætb.connection¬d¸ßdb.DbList[tb.connection]¸ê®Æ¨Ã¦^¶Ç
 		result, err := connection.QueryWithConnection(tb.connection, queryCmd, args...)
 
 		if err != nil {
+			// tb.Form.Title¥DÃD¥ª¤W¨¤(ex:µæ³æºÞ²z)
+			// tb.Form.Description¥DÃD®ÇÃäªº´y­z(ex:µæ³æºÞ²z)
 			return FormInfo{Title: tb.Form.Title, Description: tb.Form.Description}, err
 		}
 
@@ -661,10 +692,12 @@ func (tb DefaultTable) GetDataWithId(param parameter.Parameters) (FormInfo, erro
 	}
 
 	var (
+		// ½s¿è­¶­±®É¡AgroupFormList¡BgroupHeadersm¬°ªÅ
 		groupFormList = make([]types.FormFields, 0)
 		groupHeaders  = make([]string, 0)
 	)
 
+	// ¦b½s¿è­¶­±®É¡A¨S¦³tb.Form.TabGroups(²Õ¼ÐÅÒ)
 	if len(tb.Form.TabGroups) > 0 {
 		if custom {
 			groupFormList, groupHeaders = tb.Form.GroupFieldWithValue(tb.PrimaryKey.Name, id, columns, res)
@@ -675,15 +708,20 @@ func (tb DefaultTable) GetDataWithId(param parameter.Parameters) (FormInfo, erro
 			FieldList:         tb.Form.FieldList,
 			GroupFieldList:    groupFormList,
 			GroupFieldHeaders: groupHeaders,
+			// tb.Form.Title¥ª¤W¨¤¼ÐÃD
 			Title:             tb.Form.Title,
+			// tb.Form.Description¼ÐÃD®Çªº´y­z
 			Description:       tb.Form.Description,
 		}, nil
 	}
 
+	// tb.PrimaryKey.Name = id
+	// columns = [id parent_id type order title icon uri header created_at updated_at]
 	var fieldList types.FormFields
 	if custom {
-		fieldList = tb.Form.FieldsWithValue(tb.PrimaryKey.Name, id, columns, res)
 	} else {
+		// FieldsWithValue¦btemplate\types\form.go
+		// FieldsWithValue(¹ï¦³±a­ÈªºÄæ¦ì§ó·s)¹ïFormPanel.FieldList(FormFields)°õ¦æ°j°é¡A¤À§O§ó·sFormField(struct)¨Ã¥[¤JFormFields«á¦^¶Ç
 		fieldList = tb.Form.FieldsWithValue(tb.PrimaryKey.Name, id, columns, res, tb.sql)
 	}
 
@@ -955,7 +993,9 @@ func (tb DefaultTable) GetNewForm() FormInfo {
 	if len(tb.Form.TabGroups) == 0 {
 		// ¦btemplate\types\form.go
 		// FillCustomContent(¶ñ¼g¦Û©w¸q¤º®e)¹ïFormFields([]FormField)°õ¦æ°j°é¡A§PÂ_±ø¥ó«á³]¸mFormField¡A³Ì«á¦^¶ÇFormFields([]FormField)
-		return FormInfo{FieldList: tb.Form.FieldsWithDefaultValue(tb.sql).FillCustomContent()}
+		// FieldsWithDefaultValue§PÂ_Äæ¦ì¬O§_¤¹³\²K¥[¡A¨Ò¦pIDµLªk¤â°Ê¼W¥[¡A±µµÛ±N¹w³]­È§ó·s«á±o¨ìFormField(struct)¨Ã¥[¤JFormFields¤¤¡A³Ì«á¦^¶ÇFormFields
+		// ----------/menu¡B/menu/new·|°õ¦æ----------------
+		return FormInfo{FieldList: tb.Form.FieldsWithDefaultValue(tb.sql)}
 	}
 
 	// GroupField(Äæ¦ì¤À²Õ)¥ý§PÂ_±ø¥ó«á³B²zFormField¡A³Ì«á±NFormField»PTabHeader¥[¤J¦ÜgroupFormList»PgroupHeaders«á¦^¶Ç
@@ -994,8 +1034,11 @@ func (tb DefaultTable) getTheadAndFilterForm(params parameter.Parameters, column
 }
 
 // db is a helper function return raw db connection.
+// ³z¹L°Ñ¼Æ(k)¨ú±o¤Ç°tªºService(interface)¡A±µµÛ±N°Ñ¼Æservices.Get(tb.connectionDriver)Âà´«¬°Connection(interface)¦^¶Ç¨Ã¦^¶Ç
 func (tb DefaultTable) db() db.Connection {
 	if tb.connectionDriver != "" && tb.getDataFromDB() {
+		// GetConnectionFromService±N°Ñ¼Æservices.Get(tb.connectionDriver)Âà´«¬°Connect(interface)¦^¶Ç¨Ã¦^¶Ç
+		// Get³z¹L°Ñ¼Æ(k)¨ú±o¤Ç°tªºService(interface)
 		return db.GetConnectionFromService(services.Get(tb.connectionDriver))
 	}
 	return nil
@@ -1014,6 +1057,7 @@ func (tb DefaultTable) getDataFromDB() bool {
 }
 
 // sql is a helper function return db sql.
+// ±N°Ñ¼Æ³]¸m(connName¡Bconn)¨Ã¦^¶Çsql(struct)
 func (tb DefaultTable) sql() *db.SQL {
 	// getDataFromDB(±q¸ê®Æ®w¨ú±o¸ê®Æ)§PÂ_±ø¥ó
 	if tb.connectionDriver != "" && tb.getDataFromDB() {
@@ -1025,13 +1069,20 @@ func (tb DefaultTable) sql() *db.SQL {
 
 type Columns []string
 
-// getColumns(¨ú±oÄæ¦ì)
+// getColumns(¨ú±oÄæ¦ì)±NÄæ¦ì¦WºÙ¥[¤Jcolumns([]string)
+// ¦pªG¦³­È¬Oprimary_key¨Ã¥B¦Û°Ê»¼¼W«hbool = true¡A³Ì«á¦^¶ÇÄæ¦ì¦WºÙ¤Îbool
 func (tb DefaultTable) getColumns(table string) (Columns, bool) {
 
+	// sql±N°Ñ¼Æ³]¸m(connName¡Bconn)¨Ã¦^¶Çsql(struct)
+	// Table±NSQL(struct)¸ê°T²M°£«á±N°Ñ¼Ætable³]¸m¦ÜSQL.TableName¦^¶Ç
+	// ShowColumns¨ú±o©Ò¦³Äæ¦ì¸ê°T
 	columnsModel, _ := tb.sql().Table(table).ShowColumns()
 
 	columns := make(Columns, len(columnsModel))
+
+	// §PÂ_¸ê®Æ®w¤ÞÀºÃþ«¬
 	switch tb.connectionDriver {
+	// ±NÄæ¦ì¦WºÙ¥[¤Jcolumns([]string)¡A¦pªG¦³­È¬Oprimary_key¨Ã¥B¦Û°Ê»¼¼W«hbool = true¡A³Ì«á¦^¶ÇÄæ¦ì¦WºÙ¤Îbool
 	case db.DriverPostgresql:
 		auto := false
 		for key, model := range columnsModel {

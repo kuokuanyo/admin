@@ -33,10 +33,16 @@ func (h *Handler) ShowNewMenu(ctx *context.Context) {
 }
 
 func (h *Handler) showNewMenu(ctx *context.Context, err error) {
+	// 先透過參數"menu"取得Table(interface)，接著判斷條件後將[]context.Node加入至Handler.operations後回傳
 	panel := h.table("menu", ctx)
 
+	// GetNewForm在plugins\admin\modules\table\default.go
+	// 判斷欄位是否允許添加，例如ID無法手動增加，接著將預設值更新後得到FormField(struct)並加入FormFields中，將FormFields設置至FormInfo後回傳
+	// formInfo為表單所有欄位資訊
 	formInfo := panel.GetNewForm()
 
+	// 透過參數ctx回傳目前登入的用戶(Context.UserValue["user"])並轉換成UserModel
+	// user登入的使用者資訊
 	user := auth.Auth(ctx)
 
 	var alert template2.HTML
@@ -45,7 +51,13 @@ func (h *Handler) showNewMenu(ctx *context.Context, err error) {
 		alert = aAlert().Warning(err.Error())
 	}
 
+	// aForm在plugins\admin\controller\common.go中
+	// aForm設置FormAttribute(是struct也是interface)
+	// 將參數值設置至FormFields(struct)
 	h.HTML(ctx, user, types.Panel{
+		// Content將編輯頁面的HTML語法寫入
+		// formContent在plugins\admin\controller\common.go
+		// formContent回傳表單的HTML語法(class="box box-")
 		Content: alert + formContent(aForm().
 			SetContent(formInfo.FieldList).
 			SetTabContents(formInfo.GroupFieldList).
@@ -57,6 +69,7 @@ func (h *Handler) showNewMenu(ctx *context.Context, err error) {
 				form2.TokenKey:    h.authSrv().AddToken(),
 				form2.PreviousKey: h.routePath("menu"),
 			}).
+			// formFooter處理後回傳繼續新增、保存、重製....等HTML語法
 			SetOperationFooter(formFooter("new", false, false, false)), false),
 		Description: template2.HTML(panel.GetForm().Description),
 		Title:       template2.HTML(panel.GetForm().Title),
@@ -64,7 +77,8 @@ func (h *Handler) showNewMenu(ctx *context.Context, err error) {
 }
 
 // ShowEditMenu show edit menu page.
-// 
+// 先檢查設置的參數(id = ?)是否符合條件，接著透過id取得goadmin_menu資料表中的資料，然後設置值至FormInfo(struct)中
+// 最後以FormInfo(struct)匯出編輯介面的HTML語法
 func (h *Handler) ShowEditMenu(ctx *context.Context) {
 
 	// 檢查url中的id參數(因為是要編輯某個menu，需要設置id = ?)
@@ -82,28 +96,40 @@ func (h *Handler) ShowEditMenu(ctx *context.Context) {
 	// BaseParam設置值(頁數及頁數Size)至Parameters(struct)並回傳
 	// WithPKs將參數(多個string)結合並設置至Parameters.Fields["__pk"]後回傳
 	// GetDataWithId在plugins\admin\modules\table\default.go
-	
+	// GetDataWithId(透過id取得資料)透過id取得goadmin_menu資料表中的資料，接著對有帶值的欄位更新並加入FormFields後回傳，最後設置值至FormInfo(struct)中
+	formInfo, err := model.GetDataWithId(parameter.BaseParam().WithPKs(ctx.Query("id")))
 
 	// 透過參數ctx回傳目前登入的用戶(Context.UserValue["user"])並轉換成UserModel
 	user := auth.Auth(ctx)
 
 	if err != nil {
 		h.HTML(ctx, user, types.Panel{
+			// aAlert在plugins\admin\controller\common.go中
+			// aAlert設置FormAttribute(是struct也是interface)
+			// Warning首先將參數設置至AlertAttribute(struct)後，接著將符合AlertAttribute.TemplateList["components/alert"](map[string]string)的值加入text(string)，接著將參數及功能添加給新的模板並解析為模板的主體
+			// 將參數compo寫入buffer(bytes.Buffer)中最後輸出HTML
 			Content:     aAlert().Warning(err.Error()),
+			// GetForm將參數值設置至BaseTable.Form(FormPanel(struct)).primaryKey中後回傳
 			Description: template2.HTML(model.GetForm().Description),
 			Title:       template2.HTML(model.GetForm().Title),
 		})
 		return
 	}
 
+	// 將編輯介面的HTML語法匯出
 	h.showEditMenu(ctx, formInfo, nil)
 }
 
+// 將編輯介面的HTML語法匯出
 func (h *Handler) showEditMenu(ctx *context.Context, formInfo table.FormInfo, err error) {
 
 	var alert template2.HTML
 
 	if err != nil {
+		// aAlert在plugins\admin\controller\common.go中
+		// aAlert設置FormAttribute(是struct也是interface)
+		// Warning首先將參數設置至AlertAttribute(struct)後，接著將符合AlertAttribute.TemplateList["components/alert"](map[string]string)的值加入text(string)，接著將參數及功能添加給新的模板並解析為模板的主體
+		// 將參數compo寫入buffer(bytes.Buffer)中最後輸出HTML
 		alert = aAlert().Warning(err.Error())
 	}
 
@@ -111,22 +137,23 @@ func (h *Handler) showEditMenu(ctx *context.Context, formInfo table.FormInfo, er
 	// aForm在plugins\admin\controller\common.go中
 	// aForm設置FormAttribute(是struct也是interface)
 	// 將參數值設置至FormFields(struct)
-	// 判斷條件後，將FormFields添加至FormAttribute.ContentList([]FormFields)
-    // 接著將符合FormAttribute.TemplateList["components/多個參數"](map[string]string)的值加入text(string)，接著將參數及功能添加給新的模板並解析為模板的主體
-	// 將參數compo寫入buffer(bytes.Buffer)中最後輸出HTML回傳
 	h.HTML(ctx, auth.Auth(ctx), types.Panel{
+		// Content將編輯頁面的HTML語法寫入
+		// formContent在plugins\admin\controller\common.go
+		// formContent回傳表單的HTML語法(class="box box-")
 		Content: alert + formContent(aForm().
-			SetContent(formInfo.FieldList).
-			SetTabContents(formInfo.GroupFieldList).
-			SetTabHeaders(formInfo.GroupFieldHeaders).
-			SetPrefix(h.config.PrefixFixSlash()).
-			SetPrimaryKey(h.table("menu", ctx).GetPrimaryKey().Name).
-			SetUrl(h.routePath("menu_edit")).
-			SetOperationFooter(formFooter("edit", false, false, false)).
-			SetHiddenFields(map[string]string{
-				form2.TokenKey:    h.authSrv().AddToken(),
-				form2.PreviousKey: h.routePath("menu"),
-			}), false),
+		SetContent(formInfo.FieldList).
+		SetTabContents(formInfo.GroupFieldList).
+		SetTabHeaders(formInfo.GroupFieldHeaders).
+		SetPrefix(h.config.PrefixFixSlash()).
+		SetPrimaryKey(h.table("menu", ctx).GetPrimaryKey().Name).
+		SetUrl(h.routePath("menu_edit")).
+		// formFooter處理後回傳繼續新增、繼續編輯、保存、重製....等HTML語法
+		SetOperationFooter(formFooter("edit", false, false, false)).
+		SetHiddenFields(map[string]string{
+			form2.TokenKey:    h.authSrv().AddToken(),
+			form2.PreviousKey: h.routePath("menu"),
+		}), false, ctx.Query(constant.IframeKey) == "true", false, ""),
 		Description: template2.HTML(formInfo.Description),
 		Title:       template2.HTML(formInfo.Title),
 	})
@@ -273,6 +300,7 @@ func (h *Handler) MenuOrder(ctx *context.Context) {
 // getMenuInfoPanel(取得菜單資訊面板)分別處理上下半部表單的HTML語法，最後結合並輸出HTML
 func (h *Handler) getMenuInfoPanel(ctx *context.Context, alert template2.HTML) {
 	// 透過參數ctx回傳目前登入的用戶(Context.UserValue["user"])並轉換成UserModel
+	// 目前登入用戶資料(來自goadmin_users資料表)
 	user := auth.Auth(ctx)
 
 	// aTree在plugins\admin\controller\common.go中
@@ -282,20 +310,20 @@ func (h *Handler) getMenuInfoPanel(ctx *context.Context, alert template2.HTML) {
 	// 都是將參數值設置至TreeAttribute(struct)
 	// GetContent首先將符合compo.TemplateList["components/tree"](map[string]string)的值加入text(string)，接著將參數及功能添加給新的模板並解析為模板的主體
 	// 將參數compo寫入buffer(bytes.Buffer)中最後輸出HTML
-	// tree為/admin/menu中顯示的樹狀圖前端語法(尋找HTML id="tree-model")
+	// tree為/admin/menu的菜單樹狀圖語法
+	// tree為尋找{{define "tree"}}HTML語法
 	tree := aTree().
-		SetTree((menu.GetGlobalMenu(user, h.conn)).List).
-		SetEditUrl(h.routePath("menu_edit_show")).
-		SetUrlPrefix(h.config.Prefix()).
-		SetDeleteUrl(h.routePath("menu_delete")).
-		SetOrderUrl(h.routePath("menu_order")).
+		SetTree((menu.GetGlobalMenu(user, h.conn)).List). // 回傳菜單([]menu.Item)
+		SetEditUrl(h.routePath("menu_edit_show")). // /admin/menu/edit/show
+		SetUrlPrefix(h.config.Prefix()). // /admin
+		SetDeleteUrl(h.routePath("menu_delete")). // /admin/menu/delete
+		SetOrderUrl(h.routePath("menu_order")). // /admin/menu/order
 		GetContent()
 
 	// GetTreeHeader為TreeAttribute的方法
-	// 首先將符合compo.TemplateList["components/tree-header"](map[string]string)的值加入text(string)，接著將參數及功能添加給新的模板並解析為模板的主體
-	// 將參數compo寫入buffer(bytes.Buffer)中最後輸出HTML
+	// 首先將符合compo.TemplateList["components/tree-header"](map[string]string)的值加入text(string)，接著將參數compo寫入buffer(bytes.Buffer)中最後輸出HTML
 	// header為/admin/menu中為樹狀圖上面的四個按鈕前端語法
-	// header為尋找class="btn-group"
+	// header為尋找{{define "tree-header"}}HTML語法
 	header := aTree().GetTreeHeader()
 
 	// aBox在plugins\admin\controller\common.go中
@@ -303,24 +331,25 @@ func (h *Handler) getMenuInfoPanel(ctx *context.Context, alert template2.HTML) {
 	// SetHeader、SetBody、GetContent都為BoxAttribute的方法
 	// 都是將參數值設置至BoxAttribute(struct)
 	// GetContent先依判斷條件設置BoxAttribute.Style
-	// 將符合BoxAttribute.TemplateList["box"](map[string]string)的值加入text(string)，接著將參數及功能添加給新的模板並解析為模板的主體
+	// 將符合BoxAttribute.TemplateList["components/box"](map[string]string)的值加入text(string)，接著將參數及功能添加給新的模板並解析為模板的主體
 	// 將參數compo寫入buffer(bytes.Buffer)中最後輸出HTML
-	// box為尋找class="box box-"，標頭為header、內容為tree(上半部表單的語法)
+	// box為尋找{{define "box"}}後將tree設置至body以及header設置值header
 	box := aBox().SetHeader(header).SetBody(tree).GetContent()
 
 	// aCol在plugins\admin\controller\common.go中
 	// aCol設置ColAttribute(是struct也是interface)
 	// SetSize、SetContent、GetContent都是ColAttribute的方法
 	// 都是將參數值設置至ColAttribute(struct)
-	// GetContent將符合ColAttribute.TemplateList["col"](map[string]string)的值加入text(string)，接著將參數及功能添加給新的模板並解析為模板的主體
+	// GetContent將符合ColAttribute.TemplateList["components/col"](map[string]string)的值加入text(string)，接著將參數及功能添加給新的模板並解析為模板的主體
 	// 將參數compo寫入buffer(bytes.Buffer)中最後輸出HTML
-	// col1為尋找class="col-md-6"，內容為box(上半部表單圖的HTML語法)
+	// col1為尋找{{define "col"}}，將size設置為6(col-md-6)後將box設置至內容
 	col1 := aCol().SetSize(types.SizeMD(6)).SetContent(box).GetContent()
 
 	// BaseTable也屬於Table(interface)
 	// table先透過參數"menu"取得Table(interface)，接著判斷條件後將[]context.Node加入至Handler.operations後回傳
 	// GetNewForm在plugins\admin\modules\table\default.go
 	// GetNewForm(取得新表單)判斷條件(TabGroups)後，設置FormInfo(struct)後並回傳
+	// 判斷欄位是否允許添加，例如ID無法手動增加，接著將預設值更新後得到FormField(struct)並加入FormFields中，最後回傳FormInfo(struct)
 	formInfo := h.table("menu", ctx).GetNewForm()
 
 	// aForm在plugins\admin\controller\common.go中
@@ -329,37 +358,37 @@ func (h *Handler) getMenuInfoPanel(ctx *context.Context, alert template2.HTML) {
 	// 判斷條件後，將FormFields添加至FormAttribute.ContentList([]FormFields)
     // 接著將符合FormAttribute.TemplateList["components/多個參數"](map[string]string)的值加入text(string)，接著將參數及功能添加給新的模板並解析為模板的主體
 	// 將參數compo寫入buffer(bytes.Buffer)中最後輸出HTML回傳
-	// menuFormContent(菜單表單內容)將符合BoxAttribute.TemplateList["box"](map[string]string)的值加入text(string)，接著將參數及功能添加給新的模板並解析為模板的主體
-	// 將參數compo寫入buffer(bytes.Buffer)中最後輸出HTML
-	// newForm為下半部新建表單的HTML語法
+	// menuFormContent(菜單表單內容)首先將值設置至BoxAttribute(是struct也是interface)
+	// 接著將符合BoxAttribute.TemplateList["box"](map[string]string)的值加入text(string)，最後將參數compo寫入buffer(bytes.Buffer)中最後輸出HTML
+	// menuFormContent為尋找{{define "box"}}，將FormInfo(struct)設置至內容及header
 	newForm := menuFormContent(aForm().
-		SetPrefix(h.config.PrefixFixSlash()).
-		SetUrl(h.routePath("menu_new")).
-		SetPrimaryKey(h.table("menu", ctx).GetPrimaryKey().Name).
+		SetPrefix(h.config.PrefixFixSlash()). // /admin
+		SetUrl(h.routePath("menu_new")). // /admin/menu/new
+		SetPrimaryKey(h.table("menu", ctx).GetPrimaryKey().Name). // id
 		SetHiddenFields(map[string]string{
 			form2.TokenKey:    h.authSrv().AddToken(),
 			form2.PreviousKey: h.routePath("menu"),
 		}).
+		// formFooter處理後回傳繼續保存、重製....等HTML語法
 		SetOperationFooter(formFooter("menu", false, false, false)).
 		SetTitle("New").
 		SetContent(formInfo.FieldList).
-		SetTabContents(formInfo.GroupFieldList).
-		SetTabHeaders(formInfo.GroupFieldHeaders))
+		SetTabContents(formInfo.GroupFieldList). // 空
+		SetTabHeaders(formInfo.GroupFieldHeaders)) // 空
 
 	// aCol在plugins\admin\controller\common.go中
 	// aCol設置ColAttribute(是struct也是interface)
+	// 在template\components\composer.go
 	// SetSize、SetContent、GetContent都是ColAttribute的方法
-	// GetContent將符合ColAttribute.TemplateList["col"](map[string]string)的值加入text(string)，接著將參數及功能添加給新的模板並解析為模板的主體
-	// 將參數compo寫入buffer(bytes.Buffer)中最後輸出HTML
-	// col2為尋找class="col-md-6"，內容為newForm(下半部新建表單的HTML語法)
+	// GetContent將符合ColAttribute.TemplateList["col"](map[string]string)的值加入text(string)，接著將參數compo寫入buffer(bytes.Buffer)中最後輸出HTML
+	// col2為尋找{{define "col"}}，將size設置為6(col-md-6)後將參數newForm設置至內容
 	col2 := aCol().SetSize(types.SizeMD(6)).SetContent(newForm).GetContent()
 
 	// aRow在plugins\admin\controller\common.go中
 	// aRow設置RowAttribute(是struct也是interface)
 	// 在template\components\composer.go
-	// 首先將符合RowAttribute.TemplateList["components/row"](map[string]string)的值加入text(string)，接著將參數及功能添加給新的模板並解析為模板的主體
-	// 將參數compo寫入buffer(bytes.Buffer)中最後輸出HTML
-	// row為尋找class="row"，內容為上下半部所有表單的HTML語法
+	// GetContent首先將符合RowAttribute.TemplateList["components/row"](map[string]string)的值加入text(string)，接著將參數compo寫入buffer(bytes.Buffer)中最後輸出HTML
+	// row為尋找{{define "row"}}，將參數col1+col2設置至內容
 	row := aRow().SetContent(col1 + col2).GetContent()
 
 	// 輸出HTML

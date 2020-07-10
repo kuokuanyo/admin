@@ -15,6 +15,7 @@ func InArray(arr []string, str string) bool {
 	return false
 }
 
+// 耞把计del肚del+s(把计)+del┪[s(把计)]
 func Delimiter(del, s string) string {
 	if del == "[" {
 		return "[" + s + "]"

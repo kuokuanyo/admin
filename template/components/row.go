@@ -23,12 +23,11 @@ func (compo *RowAttribute) AddContent(value template.HTML) types.RowAttribute {
 	return compo
 }
 
-// template\components\composer.go
-// 盢才RowAttribute.TemplateList["components/row"](map[string]string)text(string)钡帝盢把计の睰倒穝家狾秆猂家狾砰
-// 盢把计compo糶buffer(bytes.Buffer)い程块HTML
+// 盢才TreeAttribute.TemplateList["components/tree-header"](map[string]string)text(string)
+// 钡帝盢把计compo糶buffer(bytes.Buffer)い程块HTML
 func (compo *RowAttribute) GetContent() template.HTML {
 	// template\components\composer.go
-	// 盢才RowAttribute.TemplateList["components/row"](map[string]string)text(string)钡帝盢把计の睰倒穝家狾秆猂家狾砰
+	// 盢才TreeAttribute.TemplateList["components/row"](map[string]string)text(string)钡帝盢把计の睰倒穝家狾秆猂家狾砰
 	// 盢把计compo糶buffer(bytes.Buffer)い程块HTML
 	return ComposeHtml(compo.TemplateList, *compo, "row")
 }

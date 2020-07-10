@@ -100,10 +100,10 @@ func (base *BaseTable) GetDetailFromInfo() *types.InfoPanel {
 	return detail
 }
 
-// 盢把计砞竚base.Form(InfoPanel(struct)).primaryKeyい肚
+// 盢把计砞竚BaseTable.Form(FormPanel(struct)).primaryKeyい肚
 func (base *BaseTable) GetForm() *types.FormPanel {
 	// template\types\info.goい
-	// 盢把计砞竚InfoPanel(struct).primaryKeyい肚
+	// 盢把计砞竚FormPanel(struct).primaryKeyい肚
 	return base.Form.SetPrimaryKey(base.PrimaryKey.Name, base.PrimaryKey.Type)
 }
 

@@ -51,7 +51,7 @@ type Path struct {
 
 type RouterMap map[string]Router
 
-// 虑パ把计name眔RouterMapMethods(slice)の家Α(patten)
+// 虑パ把计name眔Router(struct)Router柑ΤMethods([]string)のPattern(string)
 func (r RouterMap) Get(name string) Router {
 	return r[name]
 }
@@ -67,7 +67,7 @@ func (r Router) Method() string {
 	return r.Methods[0]
 }
 
-// 眔url
+// 矪瞶URL肚(矪瞶urlいΤ:__﹃)
 func (r Router) GetURL(value ...string) string {
 	u := r.Patten
 	// ゼ矪瞶玡ex:/admin/info/:__prefix/edit

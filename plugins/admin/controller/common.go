@@ -2,6 +2,13 @@ package controller
 
 import (
 	"bytes"
+	"fmt"
+	template2 "html/template"
+	"net/http"
+	"regexp"
+	"strings"
+	"sync"
+
 	"github.com/GoAdminGroup/go-admin/context"
 	"github.com/GoAdminGroup/go-admin/modules/auth"
 	c "github.com/GoAdminGroup/go-admin/modules/config"
@@ -16,11 +23,6 @@ import (
 	"github.com/GoAdminGroup/go-admin/template"
 	"github.com/GoAdminGroup/go-admin/template/icon"
 	"github.com/GoAdminGroup/go-admin/template/types"
-	template2 "html/template"
-	"net/http"
-	"regexp"
-	"strings"
-	"sync"
 )
 
 type Handler struct {
@@ -126,7 +128,10 @@ func (h *Handler) route(name string) context.Router {
 	return h.routes.Get(name)
 }
 
+// 透過參數name、value(...string)取得該路徑名稱的URL
 func (h *Handler) routePath(name string, value ...string) string {
+	// Get藉由參數name取得Router(struct)，Router裡有Methods([]string)及Pattern(string)
+	// GetURL處理URL後回傳(處理url中有:__的字串)
 	return h.routes.Get(name).GetURL(value...)
 }
 
@@ -228,6 +233,9 @@ func (h *Handler) authSrv() *auth.TokenService {
 }
 
 func aAlert() types.AlertAttribute {
+	// aTemplate判斷templateMap(map[string]Template)的key鍵是否參數globalCfg.Theme，有則回傳Template(interface)
+	// Alert在template\components\base.go中
+	// Alert為Template(interface)的方法，建立AlertAttribute(struct)並設置值後回傳
 	return aTemplate().Alert()
 }
 
@@ -253,6 +261,9 @@ func aCol() types.ColAttribute {
 }
 
 func aButton() types.ButtonAttribute {
+	// aTemplate判斷templateMap(map[string]Template)的key鍵是否參數globalCfg.Theme，有則回傳Template(interface)
+	// aButton在template\components\base.go中
+	// aButton為Template(interface)的方法，設置ButtonAttribute(struct也是interface)並回傳
 	return aTemplate().Button()
 }
 
@@ -293,17 +304,21 @@ func isPjax(ctx *context.Context) bool {
 	return ctx.IsPjax()
 }
 
+// 處理後回傳繼續新增、繼續編輯、保存、重製....等HTML語法
 func formFooter(page string, isHideEdit, isHideNew, isHideReset bool) template2.HTML {
+	// 找尋class="col-md-2"語法
 	col1 := aCol().SetSize(types.SizeMD(2)).GetContent()
 
 	var (
 		checkBoxs  template2.HTML
 		checkBoxJS template2.HTML
 
+		// 繼續編輯的按鈕
 		editCheckBox = template.HTML(`
 			<label class="pull-right" style="margin: 5px 10px 0 0;">
                 <input type="checkbox" class="continue_edit" style="position: absolute; opacity: 0;"> ` + language.Get("continue editing") + `
-            </label>`)
+			</label>`)
+		// 繼續新增按鈕
 		newCheckBox = template.HTML(`
 			<label class="pull-right" style="margin: 5px 10px 0 0;">
                 <input type="checkbox" class="continue_new" style="position: absolute; opacity: 0;"> ` + language.Get("continue creating") + `
@@ -328,11 +343,14 @@ func formFooter(page string, isHideEdit, isHideNew, isHideReset bool) template2.
 	});`)
 	)
 
+	
 	if page == "edit" {
+		// 隱藏新增的按鈕
 		if isHideNew {
 			newCheckBox = ""
 			newWithEditCheckBoxJs = ""
 		}
+		// 隱藏編輯的按鈕
 		if isHideEdit {
 			editCheckBox = ""
 			editWithNewCheckBoxJs = ""
@@ -371,11 +389,19 @@ func formFooter(page string, isHideEdit, isHideNew, isHideReset bool) template2.
 `)
 	}
 
+	// aButton在plugins\admin\controller\common.go中
+	// aButton設置ButtonAttribute(是struct也是interface)
+	// 將參數值設置至ButtonAttribute(struct)
+	// GetContent首先處理ButtonAttribute.Style與ButtonAttribute.LoadingText後，接著將符合ButtonAttribute.TemplateList["components/button"](map[string]string)的值加入text(string)，接著將參數及功能添加給新的模板並解析為模板的主體
+	// 將參數compo寫入buffer(bytes.Buffer)中最後輸出HTML
+	// btn1為尋找class="btn-group pull-right"
 	btn1 := aButton().SetType("submit").
 		SetContent(language.GetFromHtml("Save")).
 		SetThemePrimary().
 		SetOrientationRight().
 		GetContent()
+	
+	// btn2為尋找class="btn-group pull-left"
 	btn2 := template.HTML("")
 	if !isHideReset {
 		btn2 = aButton().SetType("reset").
@@ -406,19 +432,46 @@ func filterFormFooter(infoUrl string) template2.HTML {
 		SetHref(infoUrl).
 		SetMarginLeft(12).
 		GetContent()
+
+	// 找尋class="col-md-8 "語法
 	col2 := aCol().SetSize(types.SizeMD(8)).
 		SetContent(btn1 + btn2).GetContent()
 	return col1 + col2
 }
 
-func formContent(form types.FormAttribute, isTab bool) template2.HTML {
+// 回傳表單的HTML語法(class="box box-")
+func formContent(form types.FormAttribute, isTab, iframe, isHideBack bool, header template2.HTML) template2.HTML {
+
 	if isTab {
 		return form.GetContent()
 	}
+	if iframe {
+		header = ""
+	} else {
+		if header == template2.HTML("") {
+			// GetDefaultBoxHeader在template\components\form.go中
+			// isHideBack = false(不隱藏返回鍵)
+			// GetDefaultBoxHeader判斷條件(是否隱藏返回鍵)後取得預設的class="box-title"的HTML語法
+			// header為編輯頁面中class="box-title"的語法(返回....等HTML語法)
+			header = form.GetDefaultBoxHeader(isHideBack)
+		}
+	}
+
+
+	// aBox在plugins\admin\controller\common.go中
+	// aBox設置BoxAttribute(是struct也是interface)
+	// SetHeader、SetStyle、SetBody、GetContent、WithHeadBorder、SetIframeStyle都為BoxAttribute的方法
+	// 都是將參數值設置至BoxAttribute(struct)
+	// GetBoxHeaderNoButton(取得BoxHeader不要按鈕)的HTML語法
+	// GetContent先依判斷條件設置BoxAttribute.Style
+	// 首先將符合TreeAttribute.TemplateList["components/box"](map[string]string)的值加入text(string)
+	// 接著將參數compo寫入buffer(bytes.Buffer)中最後輸出HTML
+	// 尋找{{define "box"}}
 	return aBox().
-		SetHeader(form.GetDefaultBoxHeader()).
+		SetHeader(header).
 		WithHeadBorder().
 		SetStyle(" ").
+		SetIframeStyle(iframe).
 		SetBody(form.GetContent()).
 		GetContent()
 }
@@ -431,16 +484,18 @@ func detailContent(form types.FormAttribute, editUrl, deleteUrl string) template
 		GetContent()
 }
 
-// menuFormContent(菜單表單內容)將符合BoxAttribute.TemplateList["box"](map[string]string)的值加入text(string)，接著將參數及功能添加給新的模板並解析為模板的主體
-// 將參數compo寫入buffer(bytes.Buffer)中最後輸出HTML
+// menuFormContent(菜單表單內容)首先將值設置至BoxAttribute(是struct也是interface)
+// 接著將符合BoxAttribute.TemplateList["box"](map[string]string)的值加入text(string)，最後將參數compo寫入buffer(bytes.Buffer)中最後輸出HTML
 func menuFormContent(form types.FormAttribute) template2.HTML {
 	// aBox在plugins\admin\controller\common.go中
 	// aBox設置BoxAttribute(是struct也是interface)
 	// SetHeader、SetStyle、SetBody、GetContent、WithHeadBorder都為BoxAttribute的方法
 	// 都是將參數值設置至BoxAttribute(struct)
+	// GetBoxHeaderNoButton(取得BoxHeader不要按鈕)的HTML語法
 	// GetContent先依判斷條件設置BoxAttribute.Style
-	// 將符合BoxAttribute.TemplateList["box"](map[string]string)的值加入text(string)，接著將參數及功能添加給新的模板並解析為模板的主體
-	// 將參數compo寫入buffer(bytes.Buffer)中最後輸出HTML
+	// 首先將符合TreeAttribute.TemplateList["components/box"](map[string]string)的值加入text(string)
+	// 接著將參數compo寫入buffer(bytes.Buffer)中最後輸出HTML
+	// 尋找{{define "box"}}
 	return aBox().
 		SetHeader(form.GetBoxHeaderNoButton()).
 		SetStyle(" ").

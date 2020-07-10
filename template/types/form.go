@@ -4,6 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"html"
+	"html/template"
+	"net/http"
+	"strconv"
+	"strings"
+
 	"github.com/GoAdminGroup/go-admin/context"
 	"github.com/GoAdminGroup/go-admin/modules/config"
 	"github.com/GoAdminGroup/go-admin/modules/constant"
@@ -14,11 +20,6 @@ import (
 	"github.com/GoAdminGroup/go-admin/plugins/admin/modules"
 	"github.com/GoAdminGroup/go-admin/plugins/admin/modules/form"
 	form2 "github.com/GoAdminGroup/go-admin/template/types/form"
-	"html"
-	"html/template"
-	"net/http"
-	"strconv"
-	"strings"
 )
 
 type FieldOption struct {
@@ -147,6 +148,7 @@ type FormField struct {
 	PostFilterFn PostFieldFilterFn `json:"-"`
 }
 
+// 將FormField(struct)的值更新後回傳
 func (f FormField) UpdateValue(id, val string, res map[string]interface{}, sqls ...*db.SQL) FormField {
 	if f.FormType.IsSelect() {
 		// type OptionInitFn func(val FieldModel) FieldOptions
@@ -213,8 +215,7 @@ func (f FormField) UpdateValue(id, val string, res map[string]interface{}, sqls 
 	return f
 }
 
-// 首先對FieldOptions([]FieldOption)執行迴圈，判斷條件後將參數(html)設置至FieldOptions[k].SelectedLabel後回傳
-// 最後判斷條件後將參數f.FormType.SelectedLabel()([]template.HTML)加入FieldOptions[k].SelectedLabel
+// UpdateDefaultValue將預設值更新後回傳FormField(struct)
 func (f FormField) UpdateDefaultValue(sqls ...*db.SQL) FormField {
 	f.Value = f.Default // template.HTML
 
@@ -375,6 +376,7 @@ func (f *FormPanel) AddXssJsFilter() *FormPanel {
 	return f
 }
 
+// 將參數name、type設置至FormPanel.primaryKey後回傳
 func (f *FormPanel) SetPrimaryKey(name string, typ db.DatabaseType) *FormPanel {
 	f.primaryKey = primaryKey{Name: name, Type: typ}
 	return f
@@ -1194,59 +1196,88 @@ func (f *FormPanel) GroupField(sql ...func() *db.SQL) ([]FormFields, []string) {
 	return groupFormList, groupHeaders
 }
 
+// FieldsWithValue(對帶值的欄位更新)對FormPanel.FieldList(FormFields)執行迴圈，分別更新FormField(struct)並加入FormFields後回傳
 func (f *FormPanel) FieldsWithValue(pk, id string, columns []string, res map[string]interface{}, sql ...func() *db.SQL) FormFields {
-	formList := f.FieldList.Copy()
-	hasPK := false
-	for key, field := range formList {
-		rowValue := modules.AorB(modules.InArray(columns, field.Field) || len(columns) == 0,
-			db.GetValueFromDatabaseType(field.TypeName, res[field.Field], len(columns) == 0).String(), "")
-		if len(sql) > 0 {
-			formList[key] = field.UpdateValue(id, rowValue, res, sql[0]())
-		} else {
-			formList[key] = field.UpdateValue(id, rowValue, res)
-		}
+	var (
+		list  = make(FormFields, 0)
+		hasPK = false
+	)
+	// field為表單上所有欄位資訊
+	for _, field := range f.FieldList {
+		// rowValue為該欄位的值
+		rowValue := field.GetRawValue(columns, res[field.Field])
 
-		if formList[key].FormType == form2.File && formList[key].Value != template.HTML("") {
-			formList[key].Value2 = config.GetStore().URL(string(formList[key].Value))
+		// 編輯menu頁面時都field.FatherField都為空
+		if field.FatherField != "" {
+			f.FieldList.FindTableField(field.Field, field.FatherField).UpdateValue(id, rowValue, res, sql())
+		} else if field.FormType.IsTable() {
+			list = append(list, field)
+		} else {
+			// 將field(struct)的值都更新並加入list([]FormField)中
+			list = append(list, *(field.UpdateValue(id, rowValue, res, sql())))
 		}
 
 		if field.Field == pk {
 			hasPK = true
 		}
 	}
+
+	// hasPK判斷是否有primary key
 	if !hasPK {
-		formList = formList.Add(FormField{
-			Head:     pk,
-			Field:    pk,
-			Value:    template.HTML(id),
-			FormType: form2.Default,
-			Hide:     true,
+		list = list.Add(FormField{
+			Head:       pk,
+			FieldClass: pk,
+			Field:      pk,
+			Value:      template.HTML(id),
+			FormType:   form2.Default,
+			Hide:       true,
 		})
 	}
-	return formList
+
+	// FillCustomContent(填寫自定義內容)對FormFields([]FormField)執行迴圈，判斷條件後設置FormField，最後回傳FormFields([]FormField)
+	return list.FillCustomContent()
 }
 
-// 如果符合條件並且參數(sql ...func())長度大於0，判斷條件後添加FormField至newForm([]FormField)後回傳
+// GetRawValue為取得該欄位的值
+func (f *FormField) GetRawValue(columns []string, v interface{}) string {
+	isJSON := len(columns) == 0
+	// AorB判斷bool返回第二個(對)或第三個參數(錯)
+	// GetValueFromDatabaseType在\modules\db\types.go
+	return modules.AorB(isJSON || modules.InArray(columns, f.Field),
+		// f.TypeName為該欄位類型(ex: INT)
+		// GetValueFromDatabaseType(從資料庫類型取得值)從SQL或JSON取得值
+		db.GetValueFromDatabaseType(f.TypeName, v, isJSON).String(), "")
+}
+
+// 判斷欄位是否允許添加，例如ID無法手動增加，接著將預設值更新後得到FormField(struct)並加入FormFields中，最後回傳FormFields
 func (f *FormPanel) FieldsWithDefaultValue(sql ...func() *db.SQL) FormFields {
-	var newForm FormFields //type FormFields []FormField(struct)
+	var list = make(FormFields, 0)
 	for _, v := range f.FieldList {
-		// NotAllowAdd(不允許添加)
-		if !v.NotAllowAdd {
-			// 將FormField.Editable設為可以編輯的
+		// 判斷欄位是否允許添加，例如ID、建立時間、更新時間欄位無法手動增加
+		if v.allowAdd() {
 			v.Editable = true
-
-			// UpdateDefaultValue首先對FieldOptions([]FieldOption)執行迴圈，判斷條件後將參數(html)設置至FieldOptions[k].SelectedLabel後回傳
-			// 最後判斷條件後將參數f.FormType.SelectedLabel()([]template.HTML)加入FieldOptions[k].SelectedLabel
-			// 最後回傳FormField
-			if len(sql) > 0 {
-
-				newForm = append(newForm, v.UpdateDefaultValue(sql[0]()))
+			if v.FatherField != "" {
+				if len(sql) > 0 {
+					f.FieldList.FindTableField(v.Field, v.FatherField).UpdateDefaultValue(sql[0]())
+				} else {
+					f.FieldList.FindTableField(v.Field, v.FatherField).UpdateDefaultValue(nil)
+				}
+			} else if v.FormType.IsTable() {
+				list = append(list, v)
 			} else {
-				newForm = append(newForm, v.UpdateDefaultValue())
+				if len(sql) > 0 {
+					// 新增菜單時(/menu/new)會執行
+					// UpdateDefaultValue將預設值更新後回傳FormField(struct)
+					list = append(list, *(v.UpdateDefaultValue(sql[0]())))
+				} else {
+					list = append(list, *(v.UpdateDefaultValue(nil)))
+				}
 			}
 		}
 	}
-	return newForm
+	// FillCustomContent(填寫自定義內容)對FormFields([]FormField)執行迴圈，判斷條件後設置FormField，最後回傳FormFields([]FormField)
+	// 新增菜單api(/menu/new)不會執行下列動作(自定義)，所以list不變
+	return list.FillCustomContent().RemoveNotShow()
 }
 
 type FormPreProcessFn func(values form.Values) form.Values
@@ -1288,6 +1319,7 @@ func (f FormFields) FindByFieldName(field string) FormField {
 func (f FormFields) FillCustomContent() FormFields {
 	for i := range f {
 		// 判斷是否是自定義
+		// 新增菜單api(/menu/new)不會執行下列動作(自定義)
 		if f[i].FormType.IsCustom() {
 			// FillCustomContent(填寫自定義內容)判斷條件後設置FormField回傳
 			f[i] = f[i].FillCustomContent()

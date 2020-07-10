@@ -46,8 +46,8 @@ func (compo *TreeAttribute) SetOrderUrl(value string) types.TreeAttribute {
 	return compo
 }
 
-// 盢才TreeAttribute.TemplateList["components/tree"](map[string]string)text(string)钡帝盢把计の睰倒穝家狾秆猂家狾砰
-// 盢把计compo糶buffer(bytes.Buffer)い程块HTML
+// 盢才TreeAttribute.TemplateList["components/tree"](map[string]string)text(string)
+// 钡帝盢把计compo糶buffer(bytes.Buffer)い程块HTML
 func (compo *TreeAttribute) GetContent() template.HTML {
 	// template\components\composer.go
 	// 盢才TreeAttribute.TemplateList["components/tree"](map[string]string)text(string)钡帝盢把计の睰倒穝家狾秆猂家狾砰
@@ -55,8 +55,8 @@ func (compo *TreeAttribute) GetContent() template.HTML {
 	return ComposeHtml(compo.TemplateList, *compo, "tree")
 }
 
-// 盢才TreeAttribute.TemplateList["components/tree-header"](map[string]string)text(string)钡帝盢把计の睰倒穝家狾秆猂家狾砰
-// 盢把计compo糶buffer(bytes.Buffer)い程块HTML
+// 盢才TreeAttribute.TemplateList["components/tree-header"](map[string]string)text(string)
+// 钡帝盢把计compo糶buffer(bytes.Buffer)い程块HTML
 func (compo *TreeAttribute) GetTreeHeader() template.HTML {
 	// template\components\composer.go
 	// 盢才TreeAttribute.TemplateList["components/tree-header"](map[string]string)text(string)钡帝盢把计の睰倒穝家狾秆猂家狾砰

@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// 盢才temList(map[string]string)text(string)钡帝盢把计の睰倒穝家狾秆猂家狾砰
+// 硓筁把计(templateName ...string)盢才temList(map[string]string)text(string)钡帝盢把计の睰倒穝家狾秆猂家狾砰
 // 盢把计compo糶buffer(bytes.Buffer)い程块HTML
 func ComposeHtml(temList map[string]string, compo interface{}, templateName ...string) template.HTML {
 	var text = ""
@@ -29,7 +29,7 @@ func ComposeHtml(temList map[string]string, compo interface{}, templateName ...s
 	defineName := strings.Replace(templateName[0], "table/", "", -1)
 	defineName = strings.Replace(defineName, "form/", "", -1)
 
-	// 盢材把计(compo)糶bufferい
+	// 籔倒﹚defineName家狾莱ノ盢材把计(compo)糶bufferい
 	err = tmpl.ExecuteTemplate(buffer, defineName, compo)
 	if err != nil {
 		fmt.Println("ComposeHtml Error:", err)

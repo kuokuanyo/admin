@@ -417,8 +417,10 @@ func GetJoinField(field string) string {
 	return strings.Split(field, parameter.FilterParamJoinInfix)[1]
 }
 
+// 對joins([]join(struct))執行迴圈，假設Join的Table、Field、JoinField都不為空，回傳true
 func (j Joins) Valid() bool {
 	for i := 0; i < len(j); i++ {
+		// 假設Join的Table、Field、JoinField都不為空，回傳true
 		if j[i].Valid() {
 			return true
 		}
@@ -433,6 +435,7 @@ func (j Joins) Last() Join {
 	return Join{}
 }
 
+// 假設Join的Table、Field、JoinField都不為空，回傳true
 func (j Join) Valid() bool {
 	return j.Table != "" && j.Field != "" && j.JoinField != ""
 }
@@ -838,43 +841,43 @@ func (i *InfoPanel) AddXssJsFilter() *InfoPanel {
 	return i
 }
 
-// 盢把计砞竚InfoPanel(struct).DeleteHookい肚
+// 盢把计?瘸]竚?躀nfoPanel(struct).DeleteHookい?幡^肚
 func (i *InfoPanel) SetDeleteHook(fn DeleteFn) *InfoPanel {
 	i.DeleteHook = fn
 	return i
 }
 
-// 盢把计砞竚InfoPanel(struct).DeleteHookWithResい肚
+// 盢把计?瘸]竚?躀nfoPanel(struct).DeleteHookWithResい?幡^肚
 func (i *InfoPanel) SetDeleteHookWithRes(fn DeleteFnWithRes) *InfoPanel {
 	i.DeleteHookWithRes = fn
 	return i
 }
 
-// 盢把计砞竚InfoPanel(struct).QueryFilterFnい肚
+// 盢把计?瘸]竚?躀nfoPanel(struct).QueryFilterFnい?幡^肚
 func (i *InfoPanel) SetQueryFilterFn(fn QueryFilterFn) *InfoPanel {
 	i.QueryFilterFn = fn
 	return i
 }
 
-// 盢把计砞竚InfoPanel(struct).PreDeleteFnい肚
+// 盢把计?瘸]竚?躀nfoPanel(struct).PreDeleteFnい?幡^肚
 func (i *InfoPanel) SetPreDeleteFn(fn DeleteFn) *InfoPanel {
 	i.PreDeleteFn = fn
 	return i
 }
 
-// 盢把计砞竚InfoPanel(struct).DeleteFnい肚
+// 盢把计?瘸]竚?躀nfoPanel(struct).DeleteFnい?幡^肚
 func (i *InfoPanel) SetDeleteFn(fn DeleteFn) *InfoPanel {
 	i.DeleteFn = fn
 	return i
 }
 
-// 盢把计砞竚InfoPanel(struct).GetDataFnい肚
+// 盢把计?瘸]竚?躀nfoPanel(struct).GetDataFnい?幡^肚
 func (i *InfoPanel) SetGetDataFn(fn GetDataFn) *InfoPanel {
 	i.GetDataFn = fn
 	return i
 }
 
-// 盢把计砞竚InfoPanel(struct).primaryKeyい肚
+// 盢把计?瘸]竚?躀nfoPanel(struct).primaryKeyい?幡^肚
 func (i *InfoPanel) SetPrimaryKey(name string, typ db.DatabaseType) *InfoPanel {
 	i.primaryKey = primaryKey{Name: name, Type: typ}
 	return i
